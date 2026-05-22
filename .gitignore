@@ -1,0 +1,18 @@
+# Claude local settings
+.claude/settings.local.json
+
+# Backend — .NET
+backend/**/bin/
+backend/**/obj/
+backend/**/*.user
+backend/**/*.db
+backend/**/*.db-shm
+backend/**/*.db-wal
+
+# Frontend — Node
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+
+# OS
+.DS_Store

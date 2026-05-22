@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="MealPrepper.API/MealPrepper.API.csproj" />
+  <Project Path="MealPrepper.Core/MealPrepper.Core.csproj" />
+  <Project Path="MealPrepper.Infrastructure/MealPrepper.Infrastructure.csproj" />
+  <Project Path="MealPrepper.Tests/MealPrepper.Tests.csproj" />
+</Solution>
