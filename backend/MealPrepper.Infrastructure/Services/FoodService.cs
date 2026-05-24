@@ -17,7 +17,7 @@ public class FoodService(AppDbContext db) : IFoodService
 
         return await query
             .OrderBy(f => f.Name)
-            .Select(f => new FoodDto(f.Id, f.UserId, f.Name, f.Unit, f.CaloriesPerUnit))
+            .Select(f => new FoodDto(f.Id, f.UserId, f.Name, f.Unit, f.CaloriesPerUnit, f.ProteinPerUnit))
             .ToListAsync();
     }
 
@@ -25,7 +25,7 @@ public class FoodService(AppDbContext db) : IFoodService
     {
         var food = await db.Foods.AsNoTracking()
             .FirstOrDefaultAsync(f => f.Id == id && f.UserId == userId);
-        return food is null ? null : new FoodDto(food.Id, food.UserId, food.Name, food.Unit, food.CaloriesPerUnit);
+        return food is null ? null : new FoodDto(food.Id, food.UserId, food.Name, food.Unit, food.CaloriesPerUnit, food.ProteinPerUnit);
     }
 
     public async Task<FoodDto> CreateAsync(Guid userId, CreateFoodDto dto)
@@ -37,12 +37,13 @@ public class FoodService(AppDbContext db) : IFoodService
             Name = dto.Name.Trim(),
             Unit = dto.Unit.Trim(),
             CaloriesPerUnit = dto.CaloriesPerUnit,
+            ProteinPerUnit = dto.ProteinPerUnit,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
         db.Foods.Add(food);
         await db.SaveChangesAsync();
-        return new FoodDto(food.Id, food.UserId, food.Name, food.Unit, food.CaloriesPerUnit);
+        return new FoodDto(food.Id, food.UserId, food.Name, food.Unit, food.CaloriesPerUnit, food.ProteinPerUnit);
     }
 
     public async Task<FoodDto?> UpdateAsync(Guid userId, Guid id, UpdateFoodDto dto)
@@ -53,10 +54,11 @@ public class FoodService(AppDbContext db) : IFoodService
         food.Name = dto.Name.Trim();
         food.Unit = dto.Unit.Trim();
         food.CaloriesPerUnit = dto.CaloriesPerUnit;
+        food.ProteinPerUnit = dto.ProteinPerUnit;
         food.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();
-        return new FoodDto(food.Id, food.UserId, food.Name, food.Unit, food.CaloriesPerUnit);
+        return new FoodDto(food.Id, food.UserId, food.Name, food.Unit, food.CaloriesPerUnit, food.ProteinPerUnit);
     }
 
     public async Task<bool> DeleteAsync(Guid userId, Guid id)

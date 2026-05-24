@@ -3,6 +3,7 @@ using System;
 using MealPrepper.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MealPrepper.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260522202203_AddRecipes")]
+    partial class AddRecipes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.8");
@@ -34,9 +37,6 @@ namespace MealPrepper.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("ProteinPerUnit")
-                        .HasColumnType("decimal(18,4)");
-
                     b.Property<string>("Unit")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -53,36 +53,6 @@ namespace MealPrepper.Infrastructure.Migrations
                     b.HasIndex("UserId", "Name");
 
                     b.ToTable("Foods", (string)null);
-                });
-
-            modelBuilder.Entity("MealPrepper.Core.Entities.MealEntry", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("MealSlot")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("PortionMultiplier")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<Guid>("RecipeId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RecipeId");
-
-                    b.HasIndex("UserId", "Date");
-
-                    b.ToTable("MealEntries", (string)null);
                 });
 
             modelBuilder.Entity("MealPrepper.Core.Entities.Recipe", b =>
@@ -139,59 +109,6 @@ namespace MealPrepper.Infrastructure.Migrations
                     b.ToTable("RecipeIngredients", (string)null);
                 });
 
-            modelBuilder.Entity("MealPrepper.Core.Entities.ShoppingList", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("FromDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("GeneratedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("ToDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("ShoppingLists", (string)null);
-                });
-
-            modelBuilder.Entity("MealPrepper.Core.Entities.ShoppingListItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("FoodId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsChecked")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("ShoppingListId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("TotalQuantity")
-                        .HasColumnType("decimal(18,4)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FoodId");
-
-                    b.HasIndex("ShoppingListId");
-
-                    b.ToTable("ShoppingListItems", (string)null);
-                });
-
             modelBuilder.Entity("MealPrepper.Core.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -221,25 +138,6 @@ namespace MealPrepper.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("MealPrepper.Core.Entities.MealEntry", b =>
-                {
-                    b.HasOne("MealPrepper.Core.Entities.Recipe", "Recipe")
-                        .WithMany("MealEntries")
-                        .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("MealPrepper.Core.Entities.User", "User")
-                        .WithMany("MealEntries")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Recipe");
 
                     b.Navigation("User");
                 });
@@ -274,60 +172,14 @@ namespace MealPrepper.Infrastructure.Migrations
                     b.Navigation("Recipe");
                 });
 
-            modelBuilder.Entity("MealPrepper.Core.Entities.ShoppingList", b =>
-                {
-                    b.HasOne("MealPrepper.Core.Entities.User", "User")
-                        .WithOne("ShoppingList")
-                        .HasForeignKey("MealPrepper.Core.Entities.ShoppingList", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("MealPrepper.Core.Entities.ShoppingListItem", b =>
-                {
-                    b.HasOne("MealPrepper.Core.Entities.Food", "Food")
-                        .WithMany("ShoppingListItems")
-                        .HasForeignKey("FoodId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("MealPrepper.Core.Entities.ShoppingList", "ShoppingList")
-                        .WithMany("Items")
-                        .HasForeignKey("ShoppingListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Food");
-
-                    b.Navigation("ShoppingList");
-                });
-
-            modelBuilder.Entity("MealPrepper.Core.Entities.Food", b =>
-                {
-                    b.Navigation("ShoppingListItems");
-                });
-
             modelBuilder.Entity("MealPrepper.Core.Entities.Recipe", b =>
                 {
-                    b.Navigation("MealEntries");
-
                     b.Navigation("RecipeIngredients");
-                });
-
-            modelBuilder.Entity("MealPrepper.Core.Entities.ShoppingList", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("MealPrepper.Core.Entities.User", b =>
                 {
                     b.Navigation("Foods");
-
-                    b.Navigation("MealEntries");
-
-                    b.Navigation("ShoppingList");
                 });
 #pragma warning restore 612, 618
         }
