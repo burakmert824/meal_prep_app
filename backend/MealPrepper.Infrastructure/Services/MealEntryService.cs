@@ -11,9 +11,11 @@ public class MealEntryService(AppDbContext db) : IMealEntryService
     /// <inheritdoc/>
     public async Task<List<MealEntryDto>> GetRangeAsync(Guid userId, DateTime from, DateTime to)
     {
+        var fromUtc = DateTime.SpecifyKind(from.Date, DateTimeKind.Utc);
+        var toUtc = DateTime.SpecifyKind(to.Date, DateTimeKind.Utc);
         return await db.MealEntries
             .AsNoTracking()
-            .Where(me => me.UserId == userId && me.Date.Date >= from.Date && me.Date.Date <= to.Date)
+            .Where(me => me.UserId == userId && me.Date >= fromUtc && me.Date <= toUtc)
             .Include(me => me.Recipe)
             .OrderBy(me => me.Date).ThenBy(me => me.MealSlot)
             .Select(me => new MealEntryDto(me.Id, me.UserId, me.RecipeId, me.Recipe.Name, me.Date, me.MealSlot, me.PortionMultiplier))
@@ -31,7 +33,7 @@ public class MealEntryService(AppDbContext db) : IMealEntryService
             Id = Guid.NewGuid(),
             UserId = userId,
             RecipeId = dto.RecipeId,
-            Date = dto.Date.Date,
+            Date = DateTime.SpecifyKind(dto.Date.Date, DateTimeKind.Utc),
             MealSlot = dto.MealSlot,
             PortionMultiplier = dto.PortionMultiplier
         };

@@ -22,10 +22,13 @@ public class ShoppingListService(AppDbContext db) : IShoppingListService
     /// <inheritdoc/>
     public async Task<ShoppingListDto> GenerateAsync(Guid userId, DateTime from, DateTime to)
     {
+        var fromUtc = DateTime.SpecifyKind(from.Date, DateTimeKind.Utc);
+        var toUtc = DateTime.SpecifyKind(to.Date, DateTimeKind.Utc);
+
         // Load all meal entries in range with their recipe ingredients
         var entries = await db.MealEntries
             .AsNoTracking()
-            .Where(me => me.UserId == userId && me.Date.Date >= from.Date && me.Date.Date <= to.Date)
+            .Where(me => me.UserId == userId && me.Date >= fromUtc && me.Date <= toUtc)
             .Include(me => me.Recipe).ThenInclude(r => r.RecipeIngredients).ThenInclude(ri => ri.Food)
             .ToListAsync();
 
@@ -51,8 +54,8 @@ public class ShoppingListService(AppDbContext db) : IShoppingListService
         {
             Id = Guid.NewGuid(),
             UserId = userId,
-            FromDate = from.Date,
-            ToDate = to.Date,
+            FromDate = fromUtc,
+            ToDate = toUtc,
             GeneratedAt = DateTime.UtcNow,
             Items = totals.Select(kv => new ShoppingListItem
             {
