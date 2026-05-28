@@ -1,10 +1,1 @@
-﻿namespace MealPrepper.Tests;
-
-public class UnitTest1
-{
-    [Fact]
-    public void Test1()
-    {
-
-    }
-}
+// Placeholder removed — see FoodServiceTests, RecipeServiceTests, MealEntryServiceTests, ShoppingListServiceTests

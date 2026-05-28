@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'sonner'
 import ProfileSelectorPage from './pages/ProfileSelectorPage'
 import FoodsPage from './pages/FoodsPage'
 import RecipesPage from './pages/RecipesPage'
@@ -13,6 +14,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => (
   <BrowserRouter>
+    <Toaster position="top-right" richColors />
     <Routes>
       <Route path="/" element={<ProfileSelectorPage />} />
       <Route path="/foods" element={<ProtectedRoute><FoodsPage /></ProtectedRoute>} />

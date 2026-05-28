@@ -260,3 +260,24 @@ Note: The generated migration will automatically emit DROP TABLE for MealPlanEnt
 - Shopping list 404 handled in queryFn (returns null), enabling the empty-state Generate flow
 
 **Build status:** Build not yet run — Bash access was unavailable during this session. Run `npm run build` from frontend/ to verify.
+
+---
+
+### Backend tests added (2026-05-28)
+
+**Test project:** `backend/MealPrepper.Tests`
+
+**Packages added to MealPrepper.Tests.csproj:**
+- `FluentAssertions` 7.2.0
+- `Microsoft.Data.Sqlite` 10.0.8
+- `Microsoft.EntityFrameworkCore.Sqlite` 10.0.8
+
+**Test DB pattern:** SQLite in-memory with a kept-open `SqliteConnection` + `db.Database.EnsureCreated()`. Each test class creates a fresh DB per test via a `CreateDb()` helper.
+
+**Files created:**
+- `FoodServiceTests.cs`: covers `FoodService` — GetByUserAsync (user isolation, search filter case-insensitive, empty list), GetByIdAsync (found, wrong user, missing id), CreateAsync (field persistence + whitespace trim), UpdateAsync (all fields, wrong user), DeleteAsync (removes, wrong user, missing id). 14 tests.
+- `RecipeServiceTests.cs`: covers `RecipeService` — GetByUserAsync (user isolation, ingredients included, search, empty), GetByIdAsync (found, wrong user, missing id), CreateAsync (single and multiple ingredients), UpdateAsync (name/portion/ingredient replace, wrong user), DeleteAsync (removes, wrong user, missing id). 17 tests.
+- `MealEntryServiceTests.cs`: covers `MealEntryService` — GetRangeAsync (in-range, boundary inclusion, wrong user, empty), CreateAsync (all fields, wrong-user recipe throws, all MealSlot values via Theory), UpdateAsync (portionMultiplier, wrong user, missing id), DeleteAsync (removes, wrong user, missing id). 16 tests.
+- `ShoppingListServiceTests.cs`: covers `ShoppingListService` — GetAsync (null when none, returns list with items, wrong user returns null), GenerateAsync (correct quantity = ingredient × portionMultiplier, quantities summed across entries for same food, two foods = two items, out-of-range entry excluded, calling twice replaces old list, from/to dates stored), ToggleItemAsync (flip to true, flip to false, wrong user returns null, missing id returns null). 14 tests.
+
+**Total: 58 tests — 58 passed, 0 failed.**

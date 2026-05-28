@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { getFoods, createFood, updateFood, deleteFood } from '../api/foods'
 import { useUserStore } from '../store/userStore'
 import type { Food, CreateFoodRequest } from '../types/food'
@@ -35,16 +36,19 @@ const FoodsPage = () => {
   const { mutate: create, isPending: isCreating } = useMutation({
     mutationFn: (req: CreateFoodRequest) => createFood(userId, req),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['foods', userId] }); closeForm() },
+    onError: () => toast.error('Failed to save food. Please try again.'),
   })
 
   const { mutate: update, isPending: isUpdating } = useMutation({
     mutationFn: ({ id, req }: { id: string; req: CreateFoodRequest }) => updateFood(userId, id, req),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['foods', userId] }); closeForm() },
+    onError: () => toast.error('Failed to update food. Please try again.'),
   })
 
   const { mutate: remove } = useMutation({
     mutationFn: (id: string) => deleteFood(userId, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['foods', userId] }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['foods', userId] }); toast.success('Food deleted.') },
+    onError: () => toast.error('Failed to delete food. Please try again.'),
   })
 
   const openCreate = () => { setEditing(null); setForm(emptyForm); setRef(emptyRef); setDuplicateNotice(''); setShowForm(true) }

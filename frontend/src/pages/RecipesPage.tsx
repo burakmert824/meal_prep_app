@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { getRecipes, createRecipe, updateRecipe, deleteRecipe } from '../api/recipes'
 import { getFoods } from '../api/foods'
 import { useUserStore } from '../store/userStore'
@@ -22,6 +23,7 @@ const RecipesPage = () => {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Recipe | null>(null)
   const [form, setForm] = useState<CreateRecipeRequest>(emptyForm())
+  const [formError, setFormError] = useState('')
 
   const { data: recipes = [], isLoading } = useQuery({
     queryKey: ['recipes', userId, search],
@@ -36,19 +38,22 @@ const RecipesPage = () => {
   const { mutate: create, isPending: isCreating } = useMutation({
     mutationFn: (req: CreateRecipeRequest) => createRecipe(userId, req),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['recipes', userId] }); closeForm() },
+    onError: () => toast.error('Failed to save recipe. Please try again.'),
   })
 
   const { mutate: update, isPending: isUpdating } = useMutation({
     mutationFn: ({ id, req }: { id: string; req: CreateRecipeRequest }) => updateRecipe(userId, id, req),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['recipes', userId] }); closeForm() },
+    onError: () => toast.error('Failed to update recipe. Please try again.'),
   })
 
   const { mutate: remove } = useMutation({
     mutationFn: (id: string) => deleteRecipe(userId, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['recipes', userId] }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['recipes', userId] }); toast.success('Recipe deleted.') },
+    onError: () => toast.error('Failed to delete recipe. Please try again.'),
   })
 
-  const openCreate = () => { setEditing(null); setForm(emptyForm()); setShowForm(true) }
+  const openCreate = () => { setEditing(null); setForm(emptyForm()); setFormError(''); setShowForm(true) }
   const openEdit = (r: Recipe) => {
     setEditing(r)
     setForm({
@@ -56,9 +61,10 @@ const RecipesPage = () => {
       defaultPortionSize: r.defaultPortionSize,
       ingredients: r.ingredients.map(i => ({ foodId: i.foodId, quantity: i.quantity })),
     })
+    setFormError('')
     setShowForm(true)
   }
-  const closeForm = () => { setShowForm(false); setEditing(null); setForm(emptyForm()) }
+  const closeForm = () => { setShowForm(false); setEditing(null); setForm(emptyForm()); setFormError('') }
 
   const addIngredient = () =>
     setForm(f => ({ ...f, ingredients: [...f.ingredients, { foodId: '', quantity: 1 }] }))
@@ -74,8 +80,12 @@ const RecipesPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const valid = form.ingredients.every(i => i.foodId && i.quantity > 0)
-    if (!valid) return
+    const invalid = form.ingredients.find(i => !i.foodId || i.quantity <= 0)
+    if (invalid) {
+      setFormError('Please select a food and enter a quantity greater than 0 for all ingredients.')
+      return
+    }
+    setFormError('')
     if (editing) update({ id: editing.id, req: form })
     else create(form)
   }
@@ -201,7 +211,7 @@ const RecipesPage = () => {
                     min={0}
                     step={0.1}
                     placeholder="Qty"
-                    value={ing.quantity || ''}
+                    value={ing.quantity}
                     onChange={e => updateIngredient(idx, { quantity: parseFloat(e.target.value) || 0 })}
                     className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                   />
@@ -209,6 +219,10 @@ const RecipesPage = () => {
                 </div>
               ))}
             </div>
+
+            {formError && (
+              <p className="text-xs text-red-500">{formError}</p>
+            )}
 
             <div className="flex gap-2 justify-end pt-2">
               <button type="button" onClick={closeForm} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700">Cancel</button>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { getShoppingList, generateShoppingList, toggleShoppingListItem } from '../api/shoppingList'
 import { useUserStore } from '../store/userStore'
 import type { ShoppingList } from '../types/shoppingList'
@@ -56,7 +57,14 @@ export const ShoppingListPage = () => {
       setDateError('')
       return generateShoppingList(userId, fromDate, toDate)
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['shoppingList', userId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shoppingList', userId] })
+      toast.success('Shopping list generated.')
+    },
+    onError: (err: Error) => {
+      if (err.message !== 'Start must be before end')
+        toast.error('Failed to generate shopping list. Please try again.')
+    },
   })
 
   const { mutate: toggle } = useMutation({
@@ -74,6 +82,7 @@ export const ShoppingListPage = () => {
     },
     onError: (_err, _vars, ctx) => {
       queryClient.setQueryData(['shoppingList', userId], ctx?.prev)
+      toast.error('Failed to update item. Please try again.')
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['shoppingList', userId] }),
   })

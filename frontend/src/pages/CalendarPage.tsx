@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { getMealEntries, createMealEntry, updateMealEntry, deleteMealEntry } from '../api/mealEntries'
 import { getRecipes } from '../api/recipes'
 import { useUserStore } from '../store/userStore'
@@ -123,11 +124,13 @@ export const CalendarPage = () => {
       queryClient.invalidateQueries({ queryKey: ['mealEntries', userId] })
       closeAddModal()
     },
+    onError: () => toast.error('Failed to add meal entry. Please try again.'),
   })
 
   const { mutate: removeEntry } = useMutation({
     mutationFn: (id: string) => deleteMealEntry(userId, id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mealEntries', userId] }),
+    onError: () => toast.error('Failed to remove meal entry. Please try again.'),
   })
 
   const { mutate: saveEntry, isPending: isSaving } = useMutation({
@@ -137,6 +140,7 @@ export const CalendarPage = () => {
       queryClient.invalidateQueries({ queryKey: ['mealEntries', userId] })
       setEditingEntry(null)
     },
+    onError: () => toast.error('Failed to update meal entry. Please try again.'),
   })
 
   // ---------------------------------------------------------------------------

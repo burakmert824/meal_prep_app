@@ -71,13 +71,13 @@ public class RecipeService(AppDbContext db) : IRecipeService
         recipe.UpdatedAt = DateTime.UtcNow;
 
         db.RecipeIngredients.RemoveRange(recipe.RecipeIngredients);
-        recipe.RecipeIngredients = dto.Ingredients.Select(i => new RecipeIngredient
+        db.RecipeIngredients.AddRange(dto.Ingredients.Select(i => new RecipeIngredient
         {
             Id = Guid.NewGuid(),
             RecipeId = recipe.Id,
             FoodId = i.FoodId,
             Quantity = i.Quantity
-        }).ToList();
+        }));
 
         await db.SaveChangesAsync();
 
