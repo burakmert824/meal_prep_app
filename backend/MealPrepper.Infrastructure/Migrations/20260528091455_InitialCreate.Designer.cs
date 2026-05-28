@@ -5,37 +5,42 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace MealPrepper.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260523231843_AddProteinPerUnit")]
-    partial class AddProteinPerUnit
+    [Migration("20260528091455_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.8");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("MealPrepper.Core.Entities.Food", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("CaloriesPerUnit")
                         .HasColumnType("decimal(18,4)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<decimal>("ProteinPerUnit")
                         .HasColumnType("decimal(18,4)");
@@ -43,13 +48,13 @@ namespace MealPrepper.Infrastructure.Migrations
                     b.Property<string>("Unit")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -58,77 +63,44 @@ namespace MealPrepper.Infrastructure.Migrations
                     b.ToTable("Foods", (string)null);
                 });
 
-            modelBuilder.Entity("MealPrepper.Core.Entities.MealPlan", b =>
+            modelBuilder.Entity("MealPrepper.Core.Entities.MealEntry", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("MealPlans", (string)null);
-                });
-
-            modelBuilder.Entity("MealPrepper.Core.Entities.MealPlanEntry", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("MealPlanId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("MealSlot")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("PortionMultiplier")
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<Guid>("RecipeId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MealPlanId");
-
                     b.HasIndex("RecipeId");
 
-                    b.ToTable("MealPlanEntries", (string)null);
+                    b.HasIndex("UserId", "Date");
+
+                    b.ToTable("MealEntries", (string)null);
                 });
 
             modelBuilder.Entity("MealPrepper.Core.Entities.Recipe", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("DefaultPortionSize")
                         .HasColumnType("decimal(18,4)");
@@ -136,13 +108,13 @@ namespace MealPrepper.Infrastructure.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -155,16 +127,16 @@ namespace MealPrepper.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("FoodId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18,4)");
 
                     b.Property<Guid>("RecipeId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -179,17 +151,23 @@ namespace MealPrepper.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("FromDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("GeneratedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("MealPlanId")
-                        .HasColumnType("TEXT");
+                    b.Property<DateTime>("ToDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MealPlanId")
+                    b.HasIndex("UserId")
                         .IsUnique();
 
                     b.ToTable("ShoppingLists", (string)null);
@@ -199,19 +177,19 @@ namespace MealPrepper.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("FoodId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsChecked")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<Guid>("ShoppingListId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("TotalQuantity")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(18,4)");
 
                     b.HasKey("Id");
 
@@ -226,18 +204,18 @@ namespace MealPrepper.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -255,34 +233,23 @@ namespace MealPrepper.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("MealPrepper.Core.Entities.MealPlan", b =>
+            modelBuilder.Entity("MealPrepper.Core.Entities.MealEntry", b =>
                 {
-                    b.HasOne("MealPrepper.Core.Entities.User", "User")
-                        .WithMany("MealPlans")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("MealPrepper.Core.Entities.MealPlanEntry", b =>
-                {
-                    b.HasOne("MealPrepper.Core.Entities.MealPlan", "MealPlan")
-                        .WithMany("Entries")
-                        .HasForeignKey("MealPlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("MealPrepper.Core.Entities.Recipe", "Recipe")
-                        .WithMany("MealPlanEntries")
+                        .WithMany("MealEntries")
                         .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("MealPlan");
+                    b.HasOne("MealPrepper.Core.Entities.User", "User")
+                        .WithMany("MealEntries")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Recipe");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MealPrepper.Core.Entities.Recipe", b =>
@@ -317,13 +284,13 @@ namespace MealPrepper.Infrastructure.Migrations
 
             modelBuilder.Entity("MealPrepper.Core.Entities.ShoppingList", b =>
                 {
-                    b.HasOne("MealPrepper.Core.Entities.MealPlan", "MealPlan")
+                    b.HasOne("MealPrepper.Core.Entities.User", "User")
                         .WithOne("ShoppingList")
-                        .HasForeignKey("MealPrepper.Core.Entities.ShoppingList", "MealPlanId")
+                        .HasForeignKey("MealPrepper.Core.Entities.ShoppingList", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("MealPlan");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MealPrepper.Core.Entities.ShoppingListItem", b =>
@@ -350,16 +317,9 @@ namespace MealPrepper.Infrastructure.Migrations
                     b.Navigation("ShoppingListItems");
                 });
 
-            modelBuilder.Entity("MealPrepper.Core.Entities.MealPlan", b =>
-                {
-                    b.Navigation("Entries");
-
-                    b.Navigation("ShoppingList");
-                });
-
             modelBuilder.Entity("MealPrepper.Core.Entities.Recipe", b =>
                 {
-                    b.Navigation("MealPlanEntries");
+                    b.Navigation("MealEntries");
 
                     b.Navigation("RecipeIngredients");
                 });
@@ -373,7 +333,9 @@ namespace MealPrepper.Infrastructure.Migrations
                 {
                     b.Navigation("Foods");
 
-                    b.Navigation("MealPlans");
+                    b.Navigation("MealEntries");
+
+                    b.Navigation("ShoppingList");
                 });
 #pragma warning restore 612, 618
         }
