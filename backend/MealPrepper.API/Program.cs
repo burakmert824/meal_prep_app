@@ -15,13 +15,22 @@ var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
 if (databaseUrl != null)
 {
-    // Railway provides DATABASE_URL as a URI: postgresql://user:pass@host:port/db
-    // Npgsql requires key-value format: Host=...;Username=...;Password=...
-    var uri = new Uri(databaseUrl);
-    var userInfo = uri.UserInfo.Split(':');
-    var connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};" +
+    string connectionString;
+
+    if (databaseUrl.StartsWith("postgresql://") || databaseUrl.StartsWith("postgres://"))
+    {
+        // URI format: postgresql://user:pass@host:port/db  — convert to key-value
+        var uri = new Uri(databaseUrl);
+        var userInfo = uri.UserInfo.Split(':');
+        connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};" +
                            $"Username={userInfo[0]};Password={Uri.UnescapeDataString(userInfo[1])};" +
                            $"SSL Mode=Require;Trust Server Certificate=true";
+    }
+    else
+    {
+        // Already in key-value format: Host=...;Port=...;Username=...
+        connectionString = databaseUrl;
+    }
 
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
     builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
