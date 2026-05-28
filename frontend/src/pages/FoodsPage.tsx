@@ -7,7 +7,7 @@ import { useUserStore } from '../store/userStore'
 import type { Food, CreateFoodRequest } from '../types/food'
 
 const emptyForm = { name: '', unit: '', caloriesPerUnit: 0, proteinPerUnit: 0 }
-const emptyRef = { amount: 100, calories: 0, protein: 0 }
+const emptyRef = { amount: 100, calories: '', protein: '' }
 
 const FoodsPage = () => {
   const navigate = useNavigate()
@@ -55,7 +55,7 @@ const FoodsPage = () => {
   const openEdit = (food: Food) => {
     setEditing(food)
     setForm({ name: food.name, unit: food.unit, caloriesPerUnit: food.caloriesPerUnit, proteinPerUnit: food.proteinPerUnit })
-    setRef({ amount: 100, calories: food.caloriesPerUnit * 100, protein: food.proteinPerUnit * 100 })
+    setRef({ amount: 100, calories: String(food.caloriesPerUnit * 100), protein: String(food.proteinPerUnit * 100) })
     setShowForm(true)
   }
   const closeForm = () => { setShowForm(false); setEditing(null); setForm(emptyForm); setRef(emptyRef); setDuplicateNotice('') }
@@ -63,11 +63,13 @@ const FoodsPage = () => {
   const updateRef = (patch: Partial<typeof emptyRef>) => {
     const next = { ...ref, ...patch }
     setRef(next)
+    const cal = parseFloat(String(next.calories)) || 0
+    const pro = parseFloat(String(next.protein)) || 0
     if (next.amount > 0) {
       setForm(f => ({
         ...f,
-        caloriesPerUnit: next.calories / next.amount,
-        proteinPerUnit: next.protein / next.amount,
+        caloriesPerUnit: cal / next.amount,
+        proteinPerUnit: pro / next.amount,
       }))
     }
   }
@@ -204,18 +206,6 @@ const FoodsPage = () => {
             </div>
             <div className="flex gap-2">
               <div className="flex flex-col gap-1 flex-1 min-w-0">
-                <label className="text-xs text-gray-400">Calories (kcal)</label>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  placeholder="kcal"
-                  value={ref.calories}
-                  onChange={(e) => updateRef({ calories: parseFloat(e.target.value) || 0 })}
-                  className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-1 min-w-0">
                 <label className="text-xs text-gray-400">Protein (g)</label>
                 <input
                   type="number"
@@ -223,7 +213,19 @@ const FoodsPage = () => {
                   step={0.1}
                   placeholder="g protein"
                   value={ref.protein}
-                  onChange={(e) => updateRef({ protein: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => updateRef({ protein: e.target.value })}
+                  className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                />
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-0">
+                <label className="text-xs text-gray-400">Calories (kcal)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  placeholder="kcal"
+                  value={ref.calories}
+                  onChange={(e) => updateRef({ calories: e.target.value })}
                   className="border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 />
               </div>
