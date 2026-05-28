@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MealPrepper.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260528091455_InitialCreate")]
+    [Migration("20260528113735_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
