@@ -32,7 +32,6 @@ if (databaseUrl != null)
         connectionString = databaseUrl;
     }
 
-    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
     builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 }
 else
