@@ -95,6 +95,25 @@ app.MapGet("/health", async (AppDbContext db) =>
 });
 
 app.UseCors();
+
+// Catch unhandled exceptions and return JSON — also ensures CORS headers survive crashes
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next(context);
+    }
+    catch (Exception ex)
+    {
+        if (!context.Response.HasStarted)
+        {
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new { error = ex.Message, type = ex.GetType().Name });
+        }
+    }
+});
+
 app.UseAuthorization();
 app.MapControllers();
 
