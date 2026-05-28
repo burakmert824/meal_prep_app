@@ -2,6 +2,7 @@ using MealPrepper.Core.Interfaces;
 using MealPrepper.Infrastructure.Data;
 using MealPrepper.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,8 +58,27 @@ using (var scope = app.Services.CreateScope())
         db.Database.EnsureCreated();
 }
 
-if (app.Environment.IsDevelopment())
+var enableDocs = app.Environment.IsDevelopment() ||
+                 Environment.GetEnvironmentVariable("ENABLE_API_DOCS") == "true";
+
+if (enableDocs)
+{
     app.MapOpenApi();
+    app.MapScalarApiReference();
+}
+
+app.MapGet("/health", async (AppDbContext db) =>
+{
+    try
+    {
+        await db.Database.CanConnectAsync();
+        return Results.Ok(new { status = "healthy", database = "connected", timestamp = DateTime.UtcNow });
+    }
+    catch (Exception ex)
+    {
+        return Results.Json(new { status = "unhealthy", database = ex.Message }, statusCode: 503);
+    }
+});
 
 app.UseCors();
 app.UseAuthorization();
