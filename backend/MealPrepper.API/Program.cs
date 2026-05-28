@@ -46,14 +46,20 @@ builder.Services.AddScoped<IRecipeService, RecipeService>();
 builder.Services.AddScoped<IMealEntryService, MealEntryService>();
 builder.Services.AddScoped<IShoppingListService, ShoppingListService>();
 
-var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',')
+var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?
+    .Split(',')
+    .Select(o => o.Trim())
+    .ToArray()
     ?? ["http://localhost:5173"];
+
+Console.WriteLine($"[CORS] Configuring allowed origins: {string.Join(", ", allowedOrigins)}");
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
-              .AllowAnyMethod()));
+              .AllowAnyMethod()
+              .AllowCredentials()));
 
 var app = builder.Build();
 
